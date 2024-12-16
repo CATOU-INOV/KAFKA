@@ -1,0 +1,6 @@
+# .gitignore
+*.pyc
+__pycache__
+*.log
+*.env
+*.DS_Store
