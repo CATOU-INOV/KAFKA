@@ -4,6 +4,7 @@ import json
 import pandas as pd
 import mysql.connector
 from datetime import datetime
+from kafka import KafkaProducer
 
 # Configuration de la connexion à MySQL
 mysql_config = {
@@ -43,6 +44,12 @@ def insert_tweet(tweet_data):
 def datetime_converter(o):
     if isinstance(o, datetime):
         return o.isoformat()  # Format ISO standard : 'YYYY-MM-DDTHH:MM:SS'
+
+# Fonction pour convertir datetime avant d'envoyer au Kafka
+def convert_tweet_data_for_kafka(tweet_data):
+    if isinstance(tweet_data['created_at'], datetime):
+        tweet_data['created_at'] = tweet_data['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+    return tweet_data
 
 # Fonction principale asynchrone
 async def main():
@@ -86,6 +93,12 @@ async def main():
             'tweet_id': tweet.id,  # Utiliser l'attribut id au lieu de id_str
         }
         
+        # Convertir la date avant d'envoyer au Kafka
+        tweet_data = convert_tweet_data_for_kafka(tweet_data)
+
+        # Envoi du tweet dans le topic Kafka
+        kafka_producer.send('tweets_topic', value=tweet_data)
+
         # Ajouter les données à la liste
         tweets_to_store.append(tweet_data)
 
@@ -101,6 +114,12 @@ async def main():
 
     # Afficher les données en format JSON (en convertissant les datetime)
     print(json.dumps(tweets_to_store, default=datetime_converter, indent=4))
+
+# Configuration du producteur Kafka
+kafka_producer = KafkaProducer(
+    bootstrap_servers=['localhost:9092'],
+    value_serializer=lambda v: json.dumps(v).encode('utf-8')  # Sérialisation des messages JSON
+)
 
 # Exécuter la fonction principale
 asyncio.run(main())

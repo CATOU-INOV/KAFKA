@@ -1,16 +1,16 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, from_json
 from pyspark.sql.streaming import DataStreamReader
 from pyspark.sql.functions import udf
 from pyspark.sql.types import StringType
 import re
+import json
 
 # Initialiser la session Spark
 spark = SparkSession.builder \
     .appName("KafkaTweetStream") \
     .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2") \
     .getOrCreate()
-
 
 # Se connecter à Kafka
 kafka_stream_df = spark.readStream \
@@ -19,7 +19,6 @@ kafka_stream_df = spark.readStream \
     .option("subscribe", "tweets_topic") \
     .option("startingOffsets", "earliest") \
     .load()
-
 
 # Décoder les messages Kafka (ils sont en bytes, donc on les transforme en string)
 tweets_df = kafka_stream_df.selectExpr("CAST(value AS STRING) AS tweet")
@@ -39,7 +38,7 @@ clean_tweet_udf = udf(clean_tweet, StringType())
 # Appliquer la transformation pour nettoyer les tweets
 cleaned_tweets_df = tweets_df.withColumn("cleaned_tweet", clean_tweet_udf(col("tweet")))
 
-# Écrire le flux nettoyé en sortie (par exemple, dans la console)
+# Afficher le flux nettoyé en console pour déboguer
 query = cleaned_tweets_df.select("cleaned_tweet") \
     .writeStream \
     .outputMode("append") \

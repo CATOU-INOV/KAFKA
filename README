@@ -1,0 +1,54 @@
+# Configuration du Projet KAFKA
+
+Ce projet permet de collecter et de traiter des tweets en utilisant Kafka et MySQL.
+
+## Prérequis
+
+- Python 3.8 ou plus
+- Docker installé
+
+## Instructions
+
+### Étape 1 : Activer l'environnement Python
+
+```bash
+source myenv_python/bin/activate
+```
+
+### Étape 2 : Créer un conteneur Docker pour MySQL
+
+```bash
+docker run --name mysql -e MYSQL_ROOT_PASSWORD=admin -p 3306:3306 -d mysql:latest
+```
+
+### Étape 3 : Ajouter une table pour recueillir les tweets
+
+Accédez à MySQL via un client MySQL ou la commande suivante :
+
+```bash
+docker exec -it mysql mysql -u root -p
+```
+
+Créez d'abord le schéma `tweets_db` :
+
+```sql
+CREATE DATABASE tweets_db;
+USE tweets_db;
+```
+
+Puis exécutez cette commande SQL pour créer la table dans le schéma :
+
+```sql
+CREATE TABLE tweets (
+    id_str VARCHAR(255) NOT NULL PRIMARY KEY,
+    created_at DATETIME DEFAULT NULL,
+    favorite_count INT DEFAULT NULL,
+    full_text TEXT DEFAULT NULL,
+    author VARCHAR(255) DEFAULT NULL
+);
+```
+
+### Container Kafka
+'''bash
+docker run -d --name kafka -p 9092:9092 apache/kafka:3.9.0
+'''
