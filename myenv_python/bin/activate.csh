@@ -9,17 +9,17 @@ alias deactivate 'test $?_OLD_VIRTUAL_PATH != 0 && setenv PATH "$_OLD_VIRTUAL_PA
 # Unset irrelevant variables.
 deactivate nondestructive
 
-setenv VIRTUAL_ENV /home/catthomas/KAFKA/myenv_python
+setenv VIRTUAL_ENV /Users/thomascat/Projets/Ynov/KAFKA/myenv_python
 
 set _OLD_VIRTUAL_PATH="$PATH"
 setenv PATH "$VIRTUAL_ENV/"bin":$PATH"
+setenv VIRTUAL_ENV_PROMPT myenv_python
 
 
 set _OLD_VIRTUAL_PROMPT="$prompt"
 
 if (! "$?VIRTUAL_ENV_DISABLE_PROMPT") then
-    set prompt = '(myenv_python) '"$prompt"
-    setenv VIRTUAL_ENV_PROMPT '(myenv_python) '
+    set prompt = "("myenv_python") $prompt:q"
 endif
 
 alias pydoc python -m pydoc
