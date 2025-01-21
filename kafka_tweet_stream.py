@@ -23,11 +23,7 @@ def connect_to_mysql():
         return None
 
 # Fonction pour insérer un tweet dans la base de données avec gestion des erreurs
-def insert_tweet(full_text, cleaned_tweet):
-    connection = connect_to_mysql()
-    if connection is None:
-        return  # Ne pas continuer si la connexion échoue
-
+def insert_tweet(full_text, cleaned_tweet, connection):
     try:
         cursor = connection.cursor()
 
@@ -40,12 +36,11 @@ def insert_tweet(full_text, cleaned_tweet):
         # Exécution de la requête
         cursor.execute(query, data)
         connection.commit()
-        print(f"Insertion réussie pour le tweet avec ID: {full_text[:10]}...")  # Affiche les 10 premiers caractères pour vérifier
+        print(f"Insertion réussie pour le tweet: {full_text[:10]}...")  # Affiche les 10 premiers caractères pour vérifier
     except mysql.connector.Error as err:
         print(f"Erreur lors de l'insertion du tweet : {err}")
     finally:
         cursor.close()
-        connection.close()
 
 # Initialiser la session Spark
 spark = SparkSession.builder \
@@ -94,16 +89,31 @@ clean_tweet_udf = udf(clean_tweet, StringType())
 # Appliquer la transformation pour nettoyer les tweets
 cleaned_tweets_df = tweets_text_df.withColumn("cleaned_tweet", clean_tweet_udf(col("full_text")))
 
+# Fonction pour valider les données du tweet
+def validate_tweet_data(tweet_data):
+    # Vérifier que le tweet contient des données valides
+    return tweet_data is not None and "full_text" in tweet_data and tweet_data["full_text"] is not None
+
 # Fonction pour insérer les données dans MySQL, avec gestion des erreurs
 def process_batch(df, epoch_id):
-    # Insérer chaque ligne du batch dans la base de données
+    connection = connect_to_mysql()
+    if connection is None:
+        print(f"Erreur de connexion MySQL pour le batch {epoch_id}")
+        return
+
     try:
         for row in df.collect():
-            full_text = row['full_text']
-            cleaned_tweet = row['cleaned_tweet']
-            insert_tweet(full_text, cleaned_tweet)
+            tweet_data = row.asDict()  # Convertir la ligne en dictionnaire
+            if validate_tweet_data(tweet_data):
+                full_text = tweet_data['full_text']
+                cleaned_tweet = tweet_data['cleaned_tweet']
+                insert_tweet(full_text, cleaned_tweet, connection)
+            else:
+                print(f"Tweet invalide: {tweet_data}")
     except Exception as e:
-        print(f"Erreur lors du traitement du batch: {e}")
+        print(f"Erreur lors du traitement du batch {epoch_id}: {e}")
+    finally:
+        connection.close()
 
 # Afficher le flux nettoyé en console pour déboguer
 query = cleaned_tweets_df.writeStream \
