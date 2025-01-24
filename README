@@ -1,3 +1,8 @@
+---
+title: "Configuration du Projet KAFKA"
+output: html_document
+---
+
 # Configuration du Projet KAFKA
 
 Ce projet permet de collecter et de traiter des tweets en utilisant Kafka et MySQL.
@@ -49,6 +54,90 @@ CREATE TABLE tweets (
 ```
 
 ### Container Kafka
-'''bash
+
+```bash
 docker run -d --name kafka -p 9092:9092 apache/kafka:3.9.0
-'''
+```
+
+## Guide pour configurer la tâche cron et éditer le fichier crontab
+
+### 1. Trouver le chemin absolu de vos fichiers et environnement Python
+
+Les chemins absolus sont essentiels pour configurer correctement la tâche cron. Pour que chaque collaborateur puisse définir leur propre chemin absolu et exécuter des scripts, voici comment ils peuvent trouver ces informations :
+
+#### Trouver le chemin absolu de Python et de l'environnement virtuel :
+
+Python : Ouvrez votre terminal et tapez la commande suivante pour obtenir le chemin absolu de votre exécutable Python :
+
+```bash
+which python3
+```
+
+Cette commande renverra le chemin absolu de l'exécutable Python utilisé.
+
+#### Environnement virtuel Python : 
+Si vous utilisez un environnement virtuel (comme `myenv_python`), vous devez activer l’environnement :
+
+```bash
+source myenv_python/bin/activate
+```
+
+Pour trouver le chemin de votre script Python :
+
+```bash
+pwd collect_tweets.py
+```
+
+### 2. Configurer la tâche cron
+
+Une fois le chemin absolu du script et de Python trouvé, vous devez l'utiliser pour éditer le fichier crontab.
+
+#### Étapes pour éditer crontab et ajouter une tâche cron :
+
+Ouvrir le fichier crontab : Ouvrez le fichier cron en utilisant la commande suivante dans votre terminal :
+
+```bash
+crontab -e
+```
+
+#### Ajouter une ligne pour exécuter votre script toutes les 5 minutes :
+
+Ajoutez la ligne suivante dans le fichier crontab pour exécuter votre script toutes les 5 minutes :
+
+```bash
+*/5 * * * * /Users/username/Projets/Ynov/KAFKA/myenv_python/bin/python /Users/username/Projets/Ynov/KAFKA/collect_tweets.py
+```
+
+Remplacez `/Users/username/Projets/Ynov/KAFKA/myenv_python/bin/python` et `/Users/username/Projets/Ynov/KAFKA/collect_tweets.py` par les chemins absolus corrects sur votre machine.
+
+#### Sauvegarder et quitter :
+
+Si vous utilisez vim, appuyez sur `Esc`, puis tapez `:wq` pour enregistrer et quitter. Si vous utilisez nano, appuyez sur `Ctrl+X`, puis `Y` pour confirmer la sauvegarde et `Enter` pour quitter.
+
+### 3. Donner les droits nécessaires
+
+Pour que votre tâche cron fonctionne correctement, les collaborateurs doivent s'assurer qu'ils ont les bons droits d'accès sur les fichiers et les répertoires associés. Voici comment vérifier et donner les droits nécessaires :
+
+#### Donner des droits d'exécution pour un script :
+
+**Vérifier les droits :** Utilisez la commande `ls -l` pour voir les permissions actuelles du fichier :
+
+```bash
+ls -l /path/to/collect_tweets.py
+```
+
+**Ajoutez les droits si besoin :**
+
+```bash
+chmod +x /path/to/collect_tweets.py
+```
+
+Vous pouvez constater la bonne exécution de vos scripts avec cette commande :
+
+```bash
+cat /Users/thomascat/Projets/Ynov/KAFKA/cron_test.log
+```
+
+(Remplacez le chemin par celui de votre machine).
+
+
