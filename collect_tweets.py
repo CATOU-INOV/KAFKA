@@ -5,6 +5,11 @@ import pandas as pd
 import mysql.connector
 from datetime import datetime
 from kafka import KafkaProducer
+from datetime import datetime
+
+with open("/Users/thomascat/Projets/Ynov/KAFKA/cron_test.log", "a") as f:
+    f.write(f"Tâche lancée à: {datetime.now()}\n")
+
 
 # Configuration de la connexion à MySQL
 mysql_config = {
@@ -66,7 +71,7 @@ async def main():
     client.load_cookies(path='cookies.json')
 
     # Définir la recherche
-    theme = "bayrou"  # Remplacer par ton thème
+    theme = "bayrou OR macron OR élections OR politique"  # Remplacer par ton thème
     product = "latest"  # "top", "latest", ou "user"
 
     # Recherche des tweets
